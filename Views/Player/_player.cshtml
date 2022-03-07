@@ -35,7 +35,7 @@
         <label class="col-form-label">
             Select Season:
         </label>
-        @Html.DropDownList("seasons", seasons, new { @class = "form-control", onchange = "getStats()", id = "ddlSeason" })
+        @Html.DropDownList("seasons", seasons, new { @class = "form-select", onchange = "getStats()", id = "ddlSeason" })
         <div id="divStats"></div>
     </div>
 </div>
@@ -116,5 +116,5 @@
                 $('#divStats').html(view);
             }
         });
-        }
+    }
 </script>
