@@ -1,0 +1,33 @@
+﻿
+@model NBA_Stats.Models.SeasonAvgModel
+
+@if (Model == null)
+{
+    <span>Stats unavailable for this season.</span>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <div style="margin:0 auto;">
+                <h3>Season Averages</h3>
+                <div id="divSeasonStats">
+                    Points: <span class="pull-right">@Model.pts</span>
+
+                    <hr style="margin:0" />
+                    Rebounds: <span class="pull-right">@Model.reb</span>
+                    <hr style="margin:0" />
+                    Assists: <span class="pull-right">@Model.ast</span>
+                    <hr style="margin:0" />
+                    Steals: <span class="pull-right">@Model.stl</span>
+                    <hr style="margin:0" />
+                    Blocks: <span class="pull-right">@Model.blk</span>
+                    <hr style="margin:0" />
+                    FG%: <span class="pull-right">@((Model.fg_pct * 100).ToString("0.#"))%</span>
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+

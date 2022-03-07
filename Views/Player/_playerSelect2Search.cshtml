@@ -1,0 +1,125 @@
+﻿@model NBA_Stats.Models.PlayerSearchModel
+
+<style>
+    .fa-regular.fa-lg:hover {
+        font-size: 1.5em;
+    }
+</style>
+
+
+<div class="form-group row align-items-center">
+    <div class="col-md-1 mb-3 mb-md-0">
+        @if (Model.isRemovable)
+        {
+
+            <i class="removePlayerSearchRow fa-regular fa-lg fa-circle-xmark float-right float-md-left"></i>
+
+        }
+    </div>
+    <div class="col-md-4 text-center">
+        <button type="button" id="btnRandom_@Model.GUID" class="btn btn-primary btn-block btnGetRandomPlayer mt-2" style="margin-bottom:10px;">Get Random Player</button>
+    </div>
+    <div class="col-md-2 text-center">
+        <div style="margin-bottom:10px;">— OR —</div>
+    </div>
+    <div class="col-md-4">
+        <select id="select2_@Model.GUID" class="form-control select2 inputPlayerSearch" style="width: 100%;"></select>
+    </div>
+
+</div>
+
+
+
+@if (Model.includeScripts)
+{
+
+
+    <script type="text/javascript">
+
+        $(function () {
+
+            $('.removePlayerSearchRow').click(function () {
+                $(this).closest(".extraCompare").slideToggle();
+                $("#addCompareBtn").show();
+            })
+
+            $(".inputPlayerSearch").select2({
+                ajax: {
+                    url: "https://www.balldontlie.io/api/v1/players",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term,
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+
+                        return {
+                            results: data.data,
+                            pagination: {
+                                more: (params.page * 25) < data.meta.total_count
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: 'Search for a player',
+                minimumInputLength: 2,
+                templateResult: formatRepo,
+                templateSelection: formatRepoSelection,
+            });
+
+            function formatRepo(repo) {
+                if (repo.loading) {
+                    return repo.text;
+                }
+
+                var $container;
+
+
+                $container = $(
+                    "<div class='select2-result-player clearfix needsclick'>" +
+                    "<div class='select2-result-player__name needsclick'></div>" +
+                    "<div class='select2-result-player__description needsclick'></div>" +
+                    "</div>" +
+                    "</div>"
+                );
+
+                var playerDesc = "";
+                if (repo.position) {
+                    playerDesc += repo.position + " | ";
+                }
+                playerDesc += repo.team.abbreviation;
+
+                $container.find(".select2-result-player__name").text(repo.first_name + " " + repo.last_name);
+                $container.find(".select2-result-player__description").text(playerDesc);
+
+
+
+                return $container;
+            }
+
+            function formatRepoSelection(repo) {
+                var fullName = repo.first_name + " " + repo.last_name;
+
+                if (repo.first_name) {
+                    return fullName;
+                }
+                return repo.text;
+
+            }
+
+
+
+
+            //fix for mobile (fastclick)
+            $('.select2 span').addClass('needsclick')
+
+        });
+
+        
+    </script>
+}

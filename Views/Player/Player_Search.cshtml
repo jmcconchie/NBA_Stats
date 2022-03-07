@@ -1,0 +1,110 @@
+﻿@using NBA_Stats.Models;
+@{
+    ViewBag.Title = "Player Stats";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.UseSelect2 = true;
+    ViewBag.UseD3 = true;
+}
+
+
+<style>
+    .grid line {
+        stroke: lightgrey;
+        stroke-opacity: 0.7;
+        shape-rendering: crispEdges;
+    }
+
+    .grid path {
+        stroke-width: 0;
+    }
+
+    #playerTitle {
+        overflow: auto;
+        width: 400px;
+        margin: 0 auto;
+    }
+
+    #teamLogo {
+        float: left;
+        width: 100px;
+        height: 100px;
+    }
+
+    #my_dataviz {
+        width: 360px;
+    }
+
+    #positionTeamSubHeader {
+        font-size: 2rem;
+    }
+
+    #divSeasonStats {
+        font-size: 2rem;
+        line-height: 2;
+    }
+
+    .select2-search__field {
+        max-width: 100%;
+    }
+
+    #divStats {
+        margin: 30px 10px 10px 10px;
+    }
+
+    #divRightSideStats {
+        margin: 0 auto;
+    }
+
+
+</style>
+
+
+<h2>Player Stats</h2>
+
+
+
+@await Html.PartialAsync("_playerSelect2Search", new PlayerSearchModel { includeScripts = true, isRemovable = false })
+<hr />
+
+<div id="results"></div>
+
+@section scripts{
+    
+
+    <script type="text/javascript">
+
+        $('.inputPlayerSearch').on('change.select2', function (e) {
+            var playerID = $(this).val();
+            getPlayer(playerID);
+        });
+
+        $('.btnGetRandomPlayer').click(function () {
+            getPlayer(-1);
+        });
+
+        function getPlayer(playerID) {
+            $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Get_Player", "player")',
+                    data: {
+                        "playerID": playerID
+                    },
+                success: function (view) {
+                    d3.select("svg").remove();
+                    $('#results').html(view);
+                    if (playerID < 0) {
+                        $('#inputPlayerSearch').text("");
+                    }
+                    getStats();
+                }
+            });
+        }
+
+
+
+
+
+    </script>
+
+}
+
