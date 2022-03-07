@@ -9,7 +9,7 @@
 }
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-lg-6">
         <div id="playerTitle">
 
                 <img id="teamLogo" src="@Model.team.logo_url" />
@@ -19,9 +19,9 @@
                 <br />
                 @if (!string.IsNullOrEmpty(Model.height_feet))
                 {
-
+                    <div class="d3Wrapper">
                     <div id="my_dataviz"></div>
-
+                    </div>
                 }
                 else
                 {
@@ -31,7 +31,7 @@
 
         </div>
     </div>
-    <div id="divRightSideStats" class="col-md-6 col-lg-4">
+    <div id="divRightSideStats" class="col-lg-4">
         <label class="col-form-label">
             Select Season:
         </label>
@@ -50,8 +50,8 @@
 
 
 
-    var margin = { top: 30, right: 30, bottom: 30, left: 60 },k
-        width = 350 - margin.left - margin.right,
+    var margin = { top: 30, right: 30, bottom: 30, left: 40 },k
+        width = 400 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
@@ -85,7 +85,7 @@
         svg.append("svg:image")
 
         .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 6)
-        .attr('x', 0)
+        .attr('x', 20)
         .attr('width', 260)
         .attr('height', 190)
         //.attr("transform", `translate(${margin.left},${margin.top})`)
@@ -94,7 +94,7 @@
     svg.append("text")
 
         .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 13)
-        .attr('x', 160)
+        .attr('x', 180)
         //.attr("transform", `translate(${margin.left},${margin.top})`)
         .text(`@Model.height_feet' @Model.height_inches" (@Model.weight_pounds lbs)`);
 
