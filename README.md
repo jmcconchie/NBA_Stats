@@ -1,5 +1,6 @@
 # NBA Stats
  
+## Overview
 NBA Stats is a project I created with the goal of using the newest versions of several different tools that I am already familiar with. This project uses:
 * .NET 6
 * D3.js v6
