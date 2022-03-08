@@ -41,14 +41,21 @@
     </div>
 }
 
-<div class="row">
-    <div class="col-12 text-center">
-        <button id="addCompareBtn" type="button" class="btn btn-primary"><i class="fa fa-plus"></i> Add another</button>
-    </div>
-</div>
-<button type="button" onclick="comparePlayers()">Compare</button>
 
 <div class="row">
+    <div class="col-md-11 offset-md-1">
+        <button id="addCompareBtn" type="button" class="btn btn-outline-primary"><i class="fa fa-plus"></i> Add player</button>
+    </div>
+</div>
+<div class="row justify-content-center my-4">
+    <div class="col col-md-8 d-grid">
+        <button type="button" id=btnCompare class="btn btn-primary" onclick="comparePlayers()">Compare selected players</button>
+        <button type="button" id="btnCompareLoading" class="btn btn-primary" style=display:none;><i class="fas fa-spinner fa-pulse"></i> Getting stats</button>
+    </div>
+</div>
+
+
+<div id="divStatCharts" class="row gy-5">
     <div class="col-lg-6">
         <div class="barChart" id="chartPoints"></div>
     </div>
@@ -68,238 +75,253 @@
 
 <script type="text/javascript">
 
-    $("#addCompareBtn").click(function () {
+        $("#addCompareBtn").click(function () {
 
-        $(".extraCompare:hidden:first").slideToggle();
+            $(".extraCompare:hidden:first").slideToggle();
 
-        if (!$(".extraCompare:hidden").length) {
-            $("#addCompareBtn").hide();
-        }
-
-    });
-
-    $('.btnGetRandomPlayer').click(function () {
-
-        var guid = $(this).attr("id").split('_')[1];
-        var $selectInput = $('#select2_' + guid);
-
-        $.ajax({
-                type: "POST",
-                url: '@Url.Action("Get_Random_Player", "player")',
-                dataType:'json',
-            success: function (data) {
-                var option = new Option(data.fullName, data.id, true, true);
-
-
-
-                $selectInput.append(option).trigger('change');
-
-                $selectInput.trigger({
-                    type: 'select2:select',
-                    params: {
-                        data: data
-                    }
-                });
-
-
-            }
-        });
-    });
-
-    function comparePlayers() {
-        var players = [];
-        var seasons = [];
-        $('.inputPlayerSearch:visible').each(function () {
-            var playerID = $(this).val();
-            if (playerID) {
-                players.push(playerID);
-                seasons.push('2021');
+            if (!$(".extraCompare:hidden").length) {
+                $("#addCompareBtn").hide();
             }
 
         });
 
-        if (players.length > 1) {
+        $('.btnGetRandomPlayer').click(function () {
+
+            var guid = $(this).attr("id").split('_')[1];
+            var $selectInput = $('#select2_' + guid);
 
             $.ajax({
-                type: "POST",
-                url: '@Url.Action("Get_Player_Comparison", "player")',
-                data: {
-                    "players": players.join(','),
-                    "seasons": seasons.join(',')
-                },
+                    type: "POST",
+                    url: '@Url.Action("Get_Random_Player", "player")',
+                    dataType:'json',
                 success: function (data) {
-                    d3.selectAll("svg").remove();
-                showPlayerCompare(data.players);
-            }
+                    var option = new Option(data.fullName, data.id, true, true);
+
+                    $selectInput.append(option).trigger('change');
+
+                    $selectInput.trigger({
+                        type: 'select2:select',
+                        params: {
+                            data: data
+                        }
+                    });
+                }
+            });
         });
-        }
-    }
 
-    function showPlayerCompare(sample) {
-        createHorizontalBarChart("#chartPoints", sample, 'Points', 'pts', 35);
-        createHorizontalBarChart("#chartRebounds", sample, 'Rebounds', 'reb', 16);
-        createHorizontalBarChart("#chartAssists", sample, 'Assists', 'ast', 12);
-        createHorizontalBarChart("#chartFieldGoalPct", sample, 'Field Goal %', 'fg_pct', 70, true);
-    }
+        function comparePlayers() {
+            var players = [];
+            var seasons = [];
+            $('.inputPlayerSearch:visible').each(function () {
+                var playerID = $(this).val();
+                if (playerID) {
+                    players.push(playerID);
+                    seasons.push('2021');
+                }
 
-
-    function createHorizontalBarChart(chartID, data, label, stat, maxVal, isPct = false) {
-
-
-        // set the dimensions and margins of the graph
-        const margin = { top: 40, right: 60, bottom: 40, left: 120 },
-            width = 460 - margin.left - margin.right,
-            innerHeight = (data.length * 50),
-            height = innerHeight + margin.top + margin.bottom;
-
-        const max = d3.max(data, function (d) { return getStatValue(d) });
-
-        // append the svg object to the body of the page
-        const svg = d3.select(chartID)
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height)
-            .append("g")
-            .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-
-
-
-        // Add X axis
-        const xAxis = d3.scaleLinear()
-            .domain([0, Math.max(maxVal, max)])
-            .range([0, width]);
-
-        svg.append("g")
-            .attr("transform", `translate(0, ${innerHeight})`)
-            .call(d3.axisBottom(xAxis))
-            .selectAll("text")
-            .attr("transform", "translate(-10,0)rotate(-45)")
-            .style("text-anchor", "end");
-
-        // Y axis
-        const yAxis = d3.scaleBand()
-            .range([0, innerHeight])
-            .domain(data.map(d => d.first_name + " " + d.last_name + " " + d.stats.season))
-            .padding(.015);
-
-
-        const gyAxis = svg.append("g")
-            .call(d3.axisLeft(yAxis).tickSize([0]))
-            .selectAll(".tick text")
-            .call(wrap, margin.left);
-
-        gyAxis.select('.domain')
-            .attr('stroke-width', 0);
-
-
-
-        var bars = svg.selectAll(".bar")
-            .data(data)
-            .enter()
-            .append("g")
-
-        //append rects
-        bars.append("rect")
-            .attr("class", "bar")
-            .attr("y", function (d) {
-                return yAxis(d.first_name + " " + d.last_name + " " + d.stats.season);
-            })
-            .attr("height", yAxis.bandwidth())
-            .attr("x", 0)
-            .attr("fill", "#AAB8C4")
-
-            .transition()
-            .duration(2000)
-            .attr("width", function (d) {
-                return xAxis(getStatValue(d));
             });
 
-        bars.attr('opacity', 0.8);
+            if (players.length < 2) {
+                Swal.fire({
+                    title: 'Please select at least 2 players to compare.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                })
+            }
+            else{
 
-        bars.on("mouseover", function (event, d) {
-            d3.select(this)
-                //.transition()
-                //.duration(300)
-                .attr('opacity', 1)
-            })
-            .on("mouseout", function (event, d) {
+
+                $btn = $('#btnCompare');
+                $btnLoading = $('#btnCompareLoading');
+
+                $btn.hide();
+                $btnLoading.show();
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Get_Player_Comparison", "player")',
+                    data: {
+                        "players": players.join(','),
+                        "seasons": seasons.join(',')
+                    },
+                    success: function (data) {
+                        d3.selectAll("svg").remove();
+                        $([document.documentElement, document.body]).animate({
+                            scrollTop: $("#divStatCharts").offset().top
+                        }, 2000);
+                        showPlayerCompare(data.players);
+                        $btnLoading.hide();
+                        $btn.show();
+                }
+            });
+            }
+        }
+
+        function showPlayerCompare(sample) {
+            createHorizontalBarChart("#chartPoints", sample, 'Points', 'pts', 35);
+            createHorizontalBarChart("#chartRebounds", sample, 'Rebounds', 'reb', 16);
+            createHorizontalBarChart("#chartAssists", sample, 'Assists', 'ast', 12);
+            createHorizontalBarChart("#chartFieldGoalPct", sample, 'Field Goal %', 'fg_pct', 70, true);
+        }
+
+
+        function createHorizontalBarChart(chartID, data, label, stat, maxVal, isPct = false) {
+
+
+            // set the dimensions and margins of the graph
+            const margin = { top: 40, right: 60, bottom: 40, left: 120 },
+                width = 460 - margin.left - margin.right,
+                innerHeight = (data.length * 50),
+                height = innerHeight + margin.top + margin.bottom;
+
+            const max = d3.max(data, function (d) { return getStatValue(d) });
+
+            // append the svg object to the body of the page
+            const svg = d3.select(chartID)
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+
+
+
+            // Add X axis
+            const xAxis = d3.scaleLinear()
+                .domain([0, Math.max(maxVal, max)])
+                .range([0, width]);
+
+            svg.append("g")
+                .attr("transform", `translate(0, ${innerHeight})`)
+                .call(d3.axisBottom(xAxis))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            // Y axis
+            const yAxis = d3.scaleBand()
+                .range([0, innerHeight])
+                .domain(data.map(d => d.first_name + " " + d.last_name + " " + d.stats.season))
+                .padding(.015);
+
+
+            const gyAxis = svg.append("g")
+                .call(d3.axisLeft(yAxis).tickSize([0]))
+                .selectAll(".tick text")
+                .call(wrap, margin.left);
+
+            gyAxis.select('.domain')
+                .attr('stroke-width', 0);
+
+
+
+            var bars = svg.selectAll(".bar")
+                .data(data)
+                .enter()
+                .append("g")
+
+            //append rects
+            bars.append("rect")
+                .attr("class", "bar")
+                .attr("y", function (d) {
+                    return yAxis(d.first_name + " " + d.last_name + " " + d.stats.season);
+                })
+                .attr("height", yAxis.bandwidth())
+                .attr("x", 0)
+                .attr("fill", "#AAB8C4")
+
+                .transition()
+                .duration(2000)
+                .attr("width", function (d) {
+                    return xAxis(getStatValue(d));
+                });
+
+            bars.attr('opacity', 0.8);
+
+            bars.on("mouseover", function (event, d) {
                 d3.select(this)
                     //.transition()
                     //.duration(300)
-                    .attr('opacity', 0.8)
-            });
+                    .attr('opacity', 1)
+                })
+                .on("mouseout", function (event, d) {
+                    d3.select(this)
+                        //.transition()
+                        //.duration(300)
+                        .attr('opacity', 0.8)
+                });
 
 
 
 
 
-        var maxBar = bars.filter(function (d) { return getStatValue(d) === max });
+            var maxBar = bars.filter(function (d) { return getStatValue(d) === max });
 
-        maxBar.selectAll("rect").transition().duration(2000)
-            .attr("fill", "#69b3a2")
-            .attr("width", function (d) {
-                return xAxis(getStatValue(d));
-            });
+            maxBar.selectAll("rect").transition().duration(2000)
+                .attr("fill", "#69b3a2")
+                .attr("width", function (d) {
+                    return xAxis(getStatValue(d));
+                });
 
-        //add a value label to the right of each bar
-        var valueLabel = bars.append("text")
-            .attr("class", "label")
-            .attr("y", function (d) {
-                return yAxis(d.first_name + " " + d.last_name + " " + d.stats.season) + yAxis.bandwidth() / 2 + 4;
-            })
-            .attr("x", function (d) {
-                return xAxis(getStatValue(d)) + 3;
-            })
-            .text(function (d) {
-                return getStatValue(d) + (isPct ? "%" : "");
-            })
-            .attr("opacity", 0);
+            //add a value label to the right of each bar
+            var valueLabel = bars.append("text")
+                .attr("class", "label")
+                .attr("y", function (d) {
+                    return yAxis(d.first_name + " " + d.last_name + " " + d.stats.season) + yAxis.bandwidth() / 2 + 4;
+                })
+                .attr("x", function (d) {
+                    return xAxis(getStatValue(d)) + 3;
+                })
+                .text(function (d) {
+                    return getStatValue(d) + (isPct ? "%" : "");
+                })
+                .attr("opacity", 0);
 
-        valueLabel.transition().duration(3000)
-            .attr("opacity", 1);
+            valueLabel.transition().duration(3000)
+                .attr("opacity", 0.8);
 
 
-        svg.append('text')
-            .attr('class', 'label')
-            .attr('x', width / 2)
-            .attr('y', innerHeight + margin.top)
-            .attr('text-anchor', 'middle')
-            .text(label)
+            svg.append('text')
+                .attr('class', 'label')
+                .attr('x', width / 2)
+                .attr('y', innerHeight + margin.top)
+                .attr('text-anchor', 'middle')
+                .text(label)
 
-        function getStatValue(d) {
-            var statValue = d.stats[stat];
-            if (isPct) {
-                statValue = (statValue * 100).toFixed(1);
+            function getStatValue(d) {
+                var statValue = d.stats[stat];
+                if (isPct) {
+                    statValue = (statValue * 100).toFixed(1);
+                }
+
+                return statValue;
             }
 
-            return statValue;
-        }
-
-        function wrap(text) {
-            var labelMarginRight = 5;
-            text.each(function () {
-                var text = d3.select(this),
-                    words = text.text().split(/\s+/).reverse(),
-                    word,
-                    line = [],
-                    lineNumber = 0,
-                    lineHeight = 1.1, // ems
-                    y = text.attr("y"),
-                    dy = parseFloat(text.attr("dy")),
-                    tspan = text.text(null).append("tspan").attr("x", -labelMarginRight).attr("y", y).attr("dy", dy - 0.5 + "em");
-                while (word = words.pop()) {
-                    line.push(word);
-                    tspan.text(line.join(" "));
-                    if (!isNaN(word)) {
-                        line.pop();
+            function wrap(text) {
+                var labelMarginRight = 5;
+                text.each(function () {
+                    var text = d3.select(this),
+                        words = text.text().split(/\s+/).reverse(),
+                        word,
+                        line = [],
+                        lineNumber = 0,
+                        lineHeight = 1.1, // ems
+                        y = text.attr("y"),
+                        dy = parseFloat(text.attr("dy")),
+                        tspan = text.text(null).append("tspan").attr("x", -labelMarginRight).attr("y", y).attr("dy", dy - 0.5 + "em");
+                    while (word = words.pop()) {
+                        line.push(word);
                         tspan.text(line.join(" "));
-                        line = [word];
-                        tspan = text.append("tspan").attr("x", -labelMarginRight).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                        if (!isNaN(word)) {
+                            line.pop();
+                            tspan.text(line.join(" "));
+                            line = [word];
+                            tspan = text.append("tspan").attr("x", -labelMarginRight).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
-    }
 </script>
 }

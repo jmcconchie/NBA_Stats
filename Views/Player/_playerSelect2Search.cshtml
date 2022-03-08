@@ -8,16 +8,18 @@
 
 
 <div class="form-group row align-items-center">
-    <div class="col-md-1 mb-3 mb-md-0">
-        @if (Model.isRemovable)
-        {
+    @if (Model.isRemovable)
+    {
+        <div class="col-md-1 mb-3 mb-md-0">
+
 
             <i class="removePlayerSearchRow fa-regular fa-lg fa-circle-xmark float-right float-md-left"></i>
 
-        }
-    </div>
-    <div class="col-md-4 text-center d-grid">
-        <button type="button" id="btnRandom_@Model.GUID" class="btn btn-primary btn-block btnGetRandomPlayer mt-2" style="margin-bottom:10px;">Get Random Player</button>
+
+        </div>
+    }
+    <div class="col-md-4 text-center d-grid @(Model.isRemovable ? "" : "offset-md-1")">
+        <button type="button" id="btnRandom_@Model.GUID" class="btn btn-secondary btnGetRandomPlayer mt-md-2 mb-3" style="margin-bottom:10px;">Get random player</button>
     </div>
     <div class="col-md-2 text-center">
         <div style="margin-bottom:10px;">— OR —</div>
@@ -120,6 +122,6 @@
 
         });
 
-        
+
     </script>
 }
