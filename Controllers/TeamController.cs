@@ -9,7 +9,6 @@ namespace NBA_Stats.Controllers
         private readonly TeamService ts = new TeamService();
         public IActionResult Index()
         {
-
             return View();
         }
 

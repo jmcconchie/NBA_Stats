@@ -1,0 +1,52 @@
+﻿@{
+    ViewBag.Title = "Teams";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+
+<div class="row">
+    <div class="col-lg-6">
+        <h3>East</h3>
+        <div id="eastContainer"></div>
+    </div>
+
+    <div class="col-lg-6">
+        <h3>West</h3>
+        <div id="westContainer"></div>
+    </div>
+
+</div>
+
+
+@section Scripts{
+
+    <script type="text/javascript">
+    
+        $(function(){
+            $.ajax({
+                type: "GET",
+                url: 'https://www.balldontlie.io/api/v1/teams',
+                success: function (data) {
+                    //console.log(data);
+                    data.data.forEach(team => addTeam(team));
+                }
+            });
+
+
+        });
+    
+        function addTeam(team){
+
+            let conferenceContainer = team.conference == "East" ? $('#eastContainer') : $('#westContainer');
+            let teamURL = "/team/team_details/" + team.id;
+
+                conferenceContainer.append(`<div><a href='` + teamURL + `'>` + team.full_name + `</a></div>`)
+
+        }
+    
+    </script>
+
+
+
+}
