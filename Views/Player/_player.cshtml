@@ -12,23 +12,23 @@
     <div class="col-lg-6">
         <div id="playerTitle">
 
-                <img id="teamLogo" src="@Model.team.logo_url" />
-                <h2 id="playerName"> @Model.first_name @Model.last_name</h2>
+            <img id="teamLogo" src="@Model.team.logo_url" />
+            <h2 id="playerName"> @Model.first_name @Model.last_name</h2>
 
-                <span id="positionTeamSubHeader">@Model.position | @Model.team.full_name</span>
-                <br />
-                @if (!string.IsNullOrEmpty(Model.height_feet))
-                {
-                    
-                    <div id="playerHeadshot"></div>
-                    
-                }
-                else
-                {
+            <span id="positionTeamSubHeader">@Model.position | @Model.team.full_name</span>
+            <br />
+            @if (!string.IsNullOrEmpty(Model.height_feet))
+            {
 
-                    <span>Height: ???</span>
-                    <img src="@Model.headshot_url" style="display:block; margin:auto;"/>
-                }
+                <div id="playerHeadshot"></div>
+
+            }
+            else
+            {
+
+                <span>Height: ???</span>
+                <img src="@Model.headshot_url" style="display:block; margin:auto;" />
+            }
 
         </div>
     </div>
@@ -51,53 +51,53 @@
 
 
 
-    var margin = { top: 30, right: 30, bottom: 30, left: 40 },k
-        width = 400 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+        var margin = { top: 30, right: 30, bottom: 30, left: 40 },k
+            width = 400 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
 
-    // append the svg object to the body of the page
-        var svg = d3.select("#playerHeadshot")
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-
-
-
-    var y = d3.scaleLinear()
-        .domain([5, 7.25])
-        .range([height, 0]);
-
-    var y_axis = d3.axisLeft().scale(y)
-        .tickValues([5, 5.25, 5.5, 5.75, 6, 6.25, 6.5, 6.75, 7, 7.25])
-        .tickFormat((d, i) => [`5'`, `5' 3"`, `5' 6"`, `5' 9"`, `6'`, `6' 3"`, `6' 6"`, `6' 9"`, `7'`, `7' 3"`][i])
-        .tickSize(-width);
-
-    var gYAxis = svg.append("g")
-        .call(y_axis);
-
-    gYAxis.selectAll('.tick line').attr('opacity', 0.1);
-    gYAxis.select('.domain').attr('opacity', 0.1);
+        // append the svg object to the body of the page
+            var svg = d3.select("#playerHeadshot")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
 
 
 
+        var y = d3.scaleLinear()
+            .domain([5, 7.25])
+            .range([height, 0]);
 
-        svg.append("svg:image")
+        var y_axis = d3.axisLeft().scale(y)
+            .tickValues([5, 5.25, 5.5, 5.75, 6, 6.25, 6.5, 6.75, 7, 7.25])
+            .tickFormat((d, i) => [`5'`, `5' 3"`, `5' 6"`, `5' 9"`, `6'`, `6' 3"`, `6' 6"`, `6' 9"`, `7'`, `7' 3"`][i])
+            .tickSize(-width);
 
-        .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 6)
-        .attr('x', 20)
-        .attr('width', 260)
-        .attr('height', 190)
-        //.attr("transform", `translate(${margin.left},${margin.top})`)
-        .attr("xlink:href", "@Model.headshot_url");
+        var gYAxis = svg.append("g")
+            .call(y_axis);
 
-    svg.append("text")
+        gYAxis.selectAll('.tick line').attr('opacity', 0.1);
+        gYAxis.select('.domain').attr('opacity', 0.1);
 
-        .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 13)
-        .attr('x', 180)
-        //.attr("transform", `translate(${margin.left},${margin.top})`)
-        .text(`@Model.height_feet' @Model.height_inches" (@Model.weight_pounds lbs)`);
+
+
+
+            svg.append("svg:image")
+
+            .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 6)
+            .attr('x', 20)
+            .attr('width', 260)
+            .attr('height', 190)
+            //.attr("transform", `translate(${margin.left},${margin.top})`)
+            .attr("xlink:href", "@Model.headshot_url");
+
+        svg.append("text")
+
+            .attr('y', height - (height / 27) * (@Model.height_feet * 12 + @Model.height_inches - 60) - 13)
+            .attr('x', 180)
+            //.attr("transform", `translate(${margin.left},${margin.top})`)
+            .text(`@Model.height_feet' @Model.height_inches" (@Model.weight_pounds lbs)`);
 
 
     </script>

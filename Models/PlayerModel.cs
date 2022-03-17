@@ -46,19 +46,7 @@
         public int personID { get; set; }
     }
 
-    public class TeamModel
-    {
-        public int id { get; set; }
-        public string full_name { get; set; }
-        public string abbreviation { get; set; }
-        public string logo_url
-        {
-            get
-            {
-                return $"https://i.cdn.turner.com/nba/nba/.element/img/1.0/teamsites/logos/teamlogos_500x500/{abbreviation.ToLower()}.png";
-            }
-        }
-    }
+    
 
 
     public class SeasonAvgModel

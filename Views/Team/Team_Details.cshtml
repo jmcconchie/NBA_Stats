@@ -1,0 +1,213 @@
+﻿@using NBA_Stats.Models;
+@model TeamModel;
+@{
+    ViewBag.Title = "Player Stats";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.UseSelect2 = true;
+    ViewBag.UseD3 = true;
+}
+
+<style>
+
+
+    #teamLogo {
+        float: left;
+        height: 150px;
+        width: 150px;
+    }
+
+    .teamCity {
+        font-size: 2rem;
+    }
+
+    .teamName {
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+}
+
+</style>
+
+
+<div class="d-flex align-items-center">
+    <div class="flex-shrink-0">
+        <img id="teamLogo" src="@Model.logo_url" />
+    </div>
+    <div class="flex-grow-1 ms-3">
+        <span class="teamCity">@Model.city</span>
+        <br />
+        <span class="teamName">@Model.name</span>
+    </div>
+</div>
+
+<div id="recordLineChart"></div>
+
+@section Scripts{
+
+<script type="text/javascript">
+
+                $(function(){
+                    showTeamRecordChart();
+                    //$.ajax({
+                    //    type: "POST",
+                    //    url: '@Url.Action("Team_Record_History", "team")',
+                    //    data: {
+                    //        "id": @Model.id,
+                    //    },
+                    //    success: function (data) {
+                    //        d3.selectAll("svg").remove();
+
+                    //        showTeamRecordChart(data);
+
+                    //    }
+
+                    //});
+                });
+
+
+
+                function showTeamRecordChart(){
+
+
+
+    // set the dimensions and margins of the graph
+    const margin = {top: 10, right: 60, bottom: 30, left: 60},
+        width = 660 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+        
+    
+
+    // append the svg object to the body of the page
+    const svg = d3.select("#recordLineChart")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    //Read the data
+    d3.json("@Url.Action("Team_Record_History", "team", new {id = Model.id})").then(
+
+      // Now I can use this dataset:
+      function(data) {
+          data.forEach(function(d) {
+    d.date_2 = d3.timeParse('%m/%d/%Y')(d.date_2);
+
+  });
+  var bisectDate = d3.bisector(function(d) { return d.date_2; }).left;
+
+        // Add X axis --> it is a date format
+        const x = d3.scaleTime()
+          .domain(d3.extent(data, function(d) { return d.date_2; }))
+          .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x)
+        .ticks(d3.timeMonth.every(1))
+        .tickFormat(d => (d.getMonth() + 1) + "/" + d.getFullYear()))
+    .call(g => g.select(".domain")
+        .remove())
+
+        // Add Y axis
+        const y = d3.scaleLinear()
+          .domain([0, 1])
+          .range([ height, 0 ]);
+
+
+
+        svg.append("g")
+
+        .call(d3.axisRight(y)
+            .tickSize(width)
+            .tickFormat(formatTick))
+        .call(g => g.select(".domain")
+            .remove())
+        .call(g => g.selectAll(".tick:not(:first-of-type) line")
+            .filter(function(d){ return d!=0.5;} )
+            .attr("stroke-opacity", 0.5)
+            .attr("stroke-dasharray", "5,3"))
+
+        .call(g => g.selectAll(".tick text")
+            .attr("x", -30))
+
+            function formatTick(d) {
+      const s = (d).toFixed(3);
+      return this.parentNode.nextSibling ? `.` + s.toString().split('.')[1] : `${s}`;
+    }
+
+        // Add the line
+        svg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "steelblue")
+          .attr("stroke-width", 1.5)
+          .attr("d", d3.line()
+            .x(function(d) {
+                return x(d.date_2) })
+            .y(function(d) {
+                return y(d.winning_Pct) })
+            )
+
+
+            //mouseover
+            var focus = svg.append("g")
+      .attr("class", "focus")
+      .style("display", "none");
+
+  focus.append("circle")
+      .attr("r", 4.5);
+
+  focus.append("text")
+      .attr("class", "textDate")
+      .attr("dy", -60);
+  focus.append("text")
+      .attr("class", "textWinLoss")
+      .attr("dy", -40);
+  focus.append("text")
+      .attr("class", "textWinPct")
+      .attr("dy", -20);
+
+  svg.append("rect")
+      .attr("class", "overlay")
+      .attr("width", width)
+      .attr("height", height)
+      .on("mouseover", function() { focus.style("display", null); })
+      .on("mouseout", function() { focus.style("display", "none"); })
+      .on("mousemove", mousemove);
+
+  function mousemove() {
+    var x0 = x.invert(d3.pointer(event,this)[0]),
+        i = bisectDate(data, x0, 1),
+        d0 = data[i - 1],
+        d1 = data[i],
+        d = x0 - d0.date_2 > d1.date_2 - x0 ? d1 : d0;
+    focus.attr("transform", "translate(" + x(d.date_2) + "," + y(d.winning_Pct) + ")");
+    focus.select(".textDate").text(formatDate(d.date_2));
+    focus.select(".textWinLoss").text("(" + d.wins + "-" + d.losses + ")");
+    focus.select(".textWinPct").text(d.winning_Pct.toFixed(3));
+
+  };
+
+  function formatDate(date){
+      return (date.getMonth()+1) + "/" + date.getDate() + "/" + date.getFullYear();
+  }
+    })
+
+
+                }
+
+</script>
+
+
+
+}
