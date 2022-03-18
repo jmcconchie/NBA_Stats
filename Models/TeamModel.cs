@@ -7,6 +7,7 @@
         public string city { get; set; } = string.Empty;
         public string name { get; set; } = string.Empty;
         public string abbreviation { get; set; } = string.Empty;
+        public string conference { get; set; } = string.Empty;
         public string logo_url
         {
             get
